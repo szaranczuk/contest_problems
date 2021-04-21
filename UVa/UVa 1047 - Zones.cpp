@@ -11,7 +11,7 @@ int count_bits(int number)
     while (number != 0)
     {
         number_of_1_bits++;
-        number -= number & (-number); //subtracting most significant bit, beacause -n is ~n + 1
+        number -= number & (-number); //subtracting most significant bit, because -n is ~n + 1
     }
     return number_of_1_bits;
 }
