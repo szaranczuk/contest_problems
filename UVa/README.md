@@ -1,1 +1,1 @@
-My UVa OJ Profie: [https://onlinejudge.org/index.php?option=com_onlinejudge&Itemid=8&page=show_authorstats&userid=1204292](https://onlinejudge.org/index.php?option=com_onlinejudge&Itemid=8&page=show_authorstats&userid=1204292)
+[My uHunt Profile](https://uhunt.onlinejudge.org/id/1204292)
