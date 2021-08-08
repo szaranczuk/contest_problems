@@ -1,0 +1,101 @@
+#include <iostream>
+#include <vector>
+
+int n;
+int starting_x, starting_y;
+
+std::vector<std::vector<int>> memotable;
+std::vector<std::vector<bool>> board; //true means occupied
+
+int findResultStartingFromCoord(int y, int x)
+{
+	if (y == starting_y && x == starting_x)
+	{
+		return 1;
+	}
+	if (y == n - 1)
+	{
+		return 0;
+	}
+	if (memotable[y][x] != -1)
+	{
+		return memotable[y][x];
+	}
+	int result = 0;
+	if (x + 1 < n)
+	{
+		if (board[y + 1][x + 1])
+		{
+			if (x + 2 < n && y + 2 < n && !board[y + 2][x + 2])
+			{
+				result += (findResultStartingFromCoord(y + 2, x + 2)) % 1000007;
+			}
+		}
+		else
+		{
+			result += (findResultStartingFromCoord(y + 1, x + 1)) % 1000007;
+		}
+	}
+	if (x - 1 >= 0)
+	{
+		if (board[y + 1][x - 1])
+		{
+			if (x - 2 >= 0 && y + 2 < n && !board[y + 2][x - 2])
+			{
+				result += (findResultStartingFromCoord(y + 2, x - 2)) % 1000007;
+			}
+		}
+		else
+		{
+			result += (findResultStartingFromCoord(y + 1, x - 1)) % 1000007;
+		}
+	}
+	memotable[y][x] = result % 1000007;
+	return result % 1000007;
+}
+
+int main()
+{
+	int test_cases;
+	std::cin >> test_cases;
+	for (int i = 0; i < test_cases; i++)
+	{
+		std::cin >> n;
+		board.clear();
+		board.resize(n);
+		memotable.clear();
+		memotable.resize(n);
+		for (int i = 0; i < n; i++)
+		{
+			memotable[i].assign(n, -1);
+		}
+		for (int i = 0; i < n; i++)
+		{
+			for (int j = 0; j < n; j++)
+			{
+				char field;
+				std::cin >> field;
+				if (field == '.')
+					board[i].push_back(false);
+				else if (field == 'B')
+					board[i].push_back(true);
+				else
+				{
+					starting_y = i;
+					starting_x = j;
+					board[i].push_back(false); //for implementation reasons, we assume that occupied by white = not occupied
+				}
+			}
+		}
+		int result = 0;
+		for (int i = 0; i < n; i++)
+		{
+			if (!board[0][i])
+			{
+				result += findResultStartingFromCoord(0, i);
+				result %= 1000007;
+			}
+		}
+		std::cout << "Case " << i + 1 << ": " << result << '\n';
+	}
+}
