@@ -1,0 +1,93 @@
+#include <iostream>
+#include <vector>
+
+int N, min_y, min_x;
+
+std::vector<std::vector<long long>> memotable;
+std::vector<std::vector<std::vector<std::vector<bool>>>> isRoadOpen;
+
+long long findResult(int y, int x)
+{
+	if (y >= N || y < min_y)
+	{
+		return 0;
+	}
+	if (x >= N || x < min_x)
+	{
+		return 0;
+	}
+	if (memotable[y][x] != -1)
+	{
+		return memotable[y][x];
+	}
+	long long result = 0;
+	if (y - 1 >= 0 && isRoadOpen[y][x][y - 1][x])
+	{
+		result += findResult(y - 1, x);
+	}
+	if (x - 1 >= 0 && isRoadOpen[y][x][y][x - 1])
+	{
+		result += findResult(y, x - 1);
+	}
+	memotable[y][x] = result;
+	return result;
+}
+
+int main()
+{
+	int test_cases;
+	scanf("%d", &test_cases);
+	for (int i = 0; i < test_cases; i++)
+	{
+		scanf("%d", &N);
+		scanf("%d %d", &min_x, &min_y);
+		min_y--;
+		min_x--;
+		int end_x, end_y;
+		scanf("%d %d", &end_x, &end_y);
+		end_x--;
+		end_y--;
+		int number_of_closed_roads;
+		scanf("%d", &number_of_closed_roads);
+		isRoadOpen.clear();
+		memotable.clear();
+		memotable.resize(N);
+		isRoadOpen.resize(N);
+		for (int i = 0; i < N; i++)
+		{
+			isRoadOpen[i].resize(N);
+			memotable[i].assign(N, -1);
+			for (int j = 0; j < N; j++)
+			{
+				isRoadOpen[i][j].resize(N);
+				for (int k = 0; k < N; k++)
+				{
+					isRoadOpen[i][j][k].assign(N, true);
+				}
+			}
+		}
+		for (int i = 0; i < number_of_closed_roads; i++)
+		{
+			int x, y;
+			char direction;
+			scanf("%d %d %c", &x, &y, &direction);
+			x--;
+			y--;
+			int x2 = x;
+			int y2 = y;
+			if (direction == 'N')
+				y2++;
+			if (direction == 'S')
+				y2--;
+			if (direction == 'E')
+				x2++;
+			if (direction == 'W')
+				x2--;
+			isRoadOpen[y][x][y2][x2] = false;
+			isRoadOpen[y2][x2][y][x] = false;
+		}
+		memotable[min_y][min_x] = 1;
+		long long result = findResult(end_y, end_x);
+		printf("%lld\n", result);
+	}
+}
