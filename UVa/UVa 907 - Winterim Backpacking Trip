@@ -1,0 +1,58 @@
+#include <iostream> 
+#include <vector>
+
+int nights_of_trip;
+
+int number_of_campsites;
+
+const int INF = 1000000001;
+
+std::vector<int> distance;
+std::vector<std::vector<int>> memotable;
+
+int findResult(int campsite, int day)
+{
+	if (campsite == number_of_campsites + 1)
+	{
+		return 0;
+	}
+	if (day > nights_of_trip)
+	{
+		return INF;
+	}
+	if (memotable[campsite][day] != -1)
+	{
+		return memotable[campsite][day];
+	}
+	int _distance = 0;
+	int local_result = INF;
+	int result = INF;
+	for (int i = campsite; i < number_of_campsites + 1; i++)
+	{
+		_distance += distance[i];
+		local_result = std::max(_distance, findResult(i + 1, day + 1));
+		result = std::min(result, local_result);
+	}
+	memotable[campsite][day] = result;
+	return result;
+}
+
+int main()
+{
+	while (scanf("%d %d", &number_of_campsites, &nights_of_trip) == 2)
+	{
+		memotable.clear();
+		memotable.resize(number_of_campsites + 1);
+		distance.resize(number_of_campsites + 1);
+		for (int i = 0; i < number_of_campsites + 1; i++)
+		{
+			memotable[i].assign(nights_of_trip + 1, -1);
+			int _distance;
+			scanf("%d", &_distance);
+			distance[i] = _distance;
+		}
+		int result = findResult(0, 0);
+		printf("%d\n", result);
+	}
+	return 0;
+}
