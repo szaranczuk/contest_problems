@@ -1,0 +1,94 @@
+#include <iostream>
+#include <vector>
+
+const int INF = 1000000001;
+int N;
+
+std::vector<std::vector<std::vector<std::vector<std::vector<int>>>>> memotable;
+std::vector<std::vector<int>> gameboard;
+
+int findResult(int y, int x, bool canGoLeft, bool canGoRight, int negative_integers_left)
+{
+	if (x < 0 || x >= N || y >= N)
+	{
+		if (y == N - 1 && x == N)
+		{
+			return 0;
+		}
+		else
+		{
+			return -INF;
+		}
+	}
+	if (gameboard[y][x] < 0)
+	{
+		if (negative_integers_left <= 0)
+			return -INF;
+		negative_integers_left--;
+	}
+	if (memotable[y][x][canGoLeft][canGoRight][negative_integers_left] != -1)
+	{
+		return memotable[y][x][canGoLeft][canGoRight][negative_integers_left];
+	}
+	int result = -INF;
+	if (canGoLeft)
+	{
+		result = std::max(result, findResult(y, x - 1, true, false, negative_integers_left));
+	}
+	if (canGoRight)
+	{
+		result = std::max(result, findResult(y, x + 1, false, true, negative_integers_left));
+	}
+	result = std::max(result, findResult(y + 1, x, true, true, negative_integers_left));
+	if (result != -INF)
+	{
+		result += gameboard[y][x];
+	}
+	memotable[y][x][canGoLeft][canGoRight][negative_integers_left] = result;
+	return result;
+}
+
+int main()
+{
+	int negative_integers;
+	scanf("%d %d", &N, &negative_integers);
+	int case_iterator = 1;
+	while (N != 0 || negative_integers != 0)
+	{
+		memotable.clear();
+		memotable.resize(N);
+		gameboard.resize(N);
+		for (int i = 0; i < N; i++)
+		{
+			gameboard[i].resize(N);
+			memotable[i].resize(N);
+			for (int j = 0; j < N; j++)
+			{
+				int field;
+				scanf("%d", &field);
+				gameboard[i][j] = field;
+				memotable[i][j].resize(2);
+				for (int k = 0; k < 2; k++)
+				{
+					memotable[i][j][k].resize(2);
+					for (int u = 0; u < 2; u++)
+					{
+						memotable[i][j][k][u].assign(negative_integers + 1, -1);
+					}
+				}
+			}
+		}
+		int result = findResult(0, 0, true, true, negative_integers);
+		printf("Case %d: ", case_iterator);
+		case_iterator++;
+		if (result <= -INF)
+		{
+			printf("impossible\n");
+		}
+		else
+		{
+			printf("%d\n", result);
+		}
+		scanf("%d %d", &N, &negative_integers);
+	}
+}
