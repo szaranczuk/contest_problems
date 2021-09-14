@@ -1,0 +1,163 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+
+//Yeah, you can say that this code is shit
+//But I prefer to say that it is IOI-quality
+
+const int INF = 1000000001;
+int N;
+int amout_of_food;
+
+std::vector<int> dy = {1, 0, -1, 0};
+std::vector<int> dx = {0, 1, 0, -1};
+
+std::vector<std::vector<std::vector<std::vector<int>>>> memotable;
+std::vector<std::vector<char>> gameboard;
+std::vector<std::vector<std::vector<std::vector<int>>>> distance;
+std::vector<std::pair<int, int>> food_coordinates;
+
+void BFS(int sy, int sx)
+{
+	distance[sy][sx][sy][sx] = 0;
+	std::queue<std::pair<int, int>> BFS_queue;
+	std::vector<std::vector<bool>> visited(N);
+	for (int i = 0; i < N; i++)
+	{
+		visited[i].assign(N, false);
+	}
+	BFS_queue.push({sy, sx});
+	int food = gameboard[sy][sx];
+	visited[sy][sx] = true;
+	while (!BFS_queue.empty())
+	{
+		std::pair<int, int> vertex = BFS_queue.front();
+		BFS_queue.pop();
+		if (gameboard[vertex.first][vertex.second] == food + 1)
+			food++;
+		for (int i = 0; i < 4; i++)
+		{
+			int y = vertex.first + dy[i];
+			int x = vertex.second + dx[i];
+			if (y >= 0 && y < N && x >= 0 && x < N && !visited[y][x] && gameboard[y][x] != '#' && (gameboard[y][x] == '.' || gameboard[y][x] <= food + 1))
+			{
+				BFS_queue.push({y, x});
+				distance[sy][sx][y][x] = distance[sy][sx][vertex.first][vertex.second] + 1;
+				visited[y][x] = true;
+			}
+		}
+	}
+}
+
+int findResult(int y, int x, int food_index, int path_len)
+{
+	if (y >= N || y < 0 || x >= N || x < 0 || path_len < 0 || gameboard[y][x] == '#')
+	{
+		return 0;
+	}
+	if (memotable[y][x][food_index][path_len] != -1)
+	{
+		return memotable[y][x][food_index][path_len];
+	}
+	int new_food_index = food_index;
+	if (gameboard[y][x] - 'A' == food_index)
+	{
+		new_food_index++;
+		if (new_food_index == amout_of_food)
+		{
+			return 1;
+		}
+	}
+	else if (gameboard[y][x] != '.' && gameboard[y][x] - 'A' > food_index)
+	{
+		return 0;
+	}
+	int result = 0;
+	result = (result + findResult(y + 1, x, new_food_index, path_len - 1)) % 20437;
+	result = (result + findResult(y - 1, x, new_food_index, path_len - 1)) % 20437;
+	result = (result + findResult(y, x + 1, new_food_index, path_len - 1)) % 20437;
+	result = (result + findResult(y, x - 1, new_food_index, path_len - 1)) % 20437;
+	return memotable[y][x][food_index][path_len] = result;
+}
+
+int main()
+{
+	std::cin >> N;
+	int case_counter = 1;
+	while (N != 0)
+	{
+		amout_of_food = 0;
+		memotable.clear();
+		memotable.resize(N);
+		gameboard.resize(N);
+		food_coordinates.resize(26);
+		distance.clear();
+		distance.resize(N);
+		int start_y, start_x;
+		for (int i = 0; i < N; i++)
+		{
+			memotable[i].resize(N);
+			gameboard[i].resize(N);
+			distance[i].resize(N);
+			for (int j = 0; j < N; j++)
+			{
+				distance[i][j].resize(N);
+				memotable[i][j].resize(26);
+				char field;
+				std::cin >> field;
+				if (field != '.' && field != '#')
+				{
+					food_coordinates[field - 'A'] = {i, j};
+					amout_of_food++;
+					if (field == 'A')
+					{
+						start_y = i;
+						start_x = j;
+					}
+				}
+				gameboard[i][j] = field;
+				for (int k = 0; k < N; k++)
+				{
+					distance[i][j][k].assign(N, INF);
+				}
+			}
+		}
+		int shortest_path = 0;
+		bool path_exists = true;
+		for (int i = 0; i < amout_of_food - 1; i++)
+		{
+			auto dupa = food_coordinates[i];
+			BFS(dupa.first, dupa.second);
+			int chuj = distance[dupa.first][dupa.second][food_coordinates[i + 1].first][food_coordinates[i + 1].second];
+			if (chuj != INF)
+			{
+				shortest_path += chuj;
+			}
+			else
+			{
+				path_exists = false;
+				break;
+			}
+		}
+		printf("Case %d: ", case_counter);
+		case_counter++;
+		if (!path_exists)
+			printf("Impossible\n");
+		else
+		{
+			for (int i = 0; i < N; i++)
+			{
+				for (int j = 0; j < N; j++)
+				{
+					for (int k = 0; k < 26; k++)
+					{
+						memotable[i][j][k].assign(shortest_path + 1, -1);
+					}
+				}
+			}
+			int result = findResult(start_y, start_x, 0, shortest_path);
+			printf("%d %d\n", shortest_path, result);
+		}
+		std::cin >> N;
+	}
+}
