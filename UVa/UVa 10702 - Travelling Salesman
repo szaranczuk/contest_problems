@@ -1,0 +1,64 @@
+#include <iostream>
+#include <vector>
+#include <set>
+
+const int INF = 1000000001;
+int C, S, E, T;
+
+std::vector<std::vector<int>> memotable;
+std::vector<std::vector<int>> profits;
+std::set<int> end_cities;
+
+int findResult(int current_city, int travels_left)
+{
+    if (travels_left == 0)
+    {
+        if (end_cities.find(current_city) != end_cities.end())
+            return 0;
+        else
+            return -INF;
+    }
+    travels_left--; //shift by one to save 4 bytes of memory
+    if (memotable[current_city][travels_left] != -1)
+    {
+        return memotable[current_city][travels_left];
+    }
+    int result = 0;
+    for (int i = 0; i < C; i++)
+    {
+        result = std::max(result, profits[current_city][i] + findResult(i, travels_left)); //we already decremented travels left
+    }
+    return memotable[current_city][travels_left] = result;
+}
+
+int main()
+{
+    scanf("%d %d %d %d", &C, &S, &E, &T);
+    while (C != 0 || S != 0 || E != 0 || T != 0)
+    {
+        memotable.clear();
+        end_cities.clear();
+        profits.resize(C);
+        memotable.resize(C);
+        for (int i = 0; i < C; i++)
+        {
+            memotable[i].assign(T, -1);
+            profits[i].resize(C);
+            for (int j = 0; j < C; j++)
+            {
+                int value;
+                scanf("%d", &value);
+                profits[i][j] = value;
+            }
+        }
+        for (int i = 0; i < E; i++)
+        {
+            int end_city;
+            scanf("%d", &end_city);
+            end_cities.insert(end_city - 1);
+        }
+        int result = findResult(S - 1, T);
+        printf("%d\n", result);
+        scanf("%d %d %d %d", &C, &S, &E, &T);
+    }
+}
