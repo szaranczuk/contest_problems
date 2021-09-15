@@ -1,0 +1,149 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+
+const int INF = 1000000001;
+
+std::vector<bool> visited;
+std::vector<std::vector<int>> Adj;
+std::vector<std::vector<int>> distances;
+std::vector<int> degree;
+
+void DFS(int source, int vertex)
+{
+	visited[vertex] = true;
+	for (int adjacent : Adj[vertex])
+	{
+		if (!visited[adjacent])
+		{
+			distances[source][adjacent] = distances[source][vertex] + 1;
+			DFS(source, adjacent);
+		}
+	}
+}
+
+std::vector<int> findWorstVertices(int N)
+{
+	distances.resize(N);
+	for (int i = 0; i < N; i++)
+	{
+		distances[i].resize(N);
+		distances[i][i] = 0;
+	}
+	visited.clear();
+	visited.assign(N, false);
+	DFS(0, 0);
+	int endpoint1 = 0;
+	int max_distance = 0;
+	for (int i = 0; i < N; i++)
+	{
+		if (distances[0][i] > max_distance)
+		{
+			max_distance = distances[0][i];
+			endpoint1 = i;
+		}
+	}
+	visited.clear();
+	visited.assign(N, false);
+	DFS(endpoint1, endpoint1);
+	int endpoint2 = 0;
+	max_distance = 0;
+	for (int i = 0; i < N; i++)
+	{
+		if (distances[endpoint1][i] > max_distance)
+		{
+			max_distance = distances[endpoint1][i];
+			endpoint2 = i;
+		}
+	}
+	visited.clear();
+	visited.assign(N, false);
+	DFS(endpoint2, endpoint2);
+	std::vector<int> worst_vertices;
+	for (int i = 0; i < N; i++)
+	{
+		if (distances[endpoint1][i] == max_distance || distances[endpoint2][i] == max_distance)
+		{
+			worst_vertices.push_back(i + 1);
+		}
+	}
+	return worst_vertices;
+}
+
+std::vector<int> findBestVertices(int N)
+{
+	std::queue<int> leaf_queue;
+	for (int i = 0; i < N; i++)
+	{
+		if (degree[i] == 1)
+		{
+			leaf_queue.push(i);
+		}
+	}
+	while (N > 2) //there can be at most 2 best vertices
+	{
+		int queue_size = leaf_queue.size();
+		N -= queue_size;
+		for (int i = 0; i < queue_size; i++)
+		{
+			int leaf = leaf_queue.front();
+			leaf_queue.pop();
+			for (int adjacent : Adj[leaf])
+			{
+				degree[adjacent]--;
+				if (degree[adjacent] == 1)
+				{
+					leaf_queue.push(adjacent);
+				}
+			}
+		}
+	}
+	std::vector<int> best_vertices;
+	while (!leaf_queue.empty())
+	{
+		int vertex = leaf_queue.front();
+		leaf_queue.pop();
+		best_vertices.push_back(vertex + 1);
+	}
+	if (best_vertices.size() == 2 && best_vertices[0] > best_vertices[1])
+	{
+		std::swap(best_vertices[0], best_vertices[1]);
+	}
+	return best_vertices;
+}
+
+int main()
+{
+	int N;
+	while (scanf("%d", &N) == 1)
+	{
+		Adj.clear();
+		Adj.resize(N);
+		degree.resize(N);
+		for (int i = 0; i < N; i++)
+		{
+			int number_of_adjacent_vertices;
+			scanf("%d", &number_of_adjacent_vertices);
+			degree[i] = number_of_adjacent_vertices;
+			for (int j = 0; j < number_of_adjacent_vertices; j++)
+			{
+				int adjacent;
+				scanf("%d", &adjacent);
+				Adj[i].push_back(adjacent - 1);
+			}
+		}
+		std::vector<int> worst_vertices = findWorstVertices(N);
+		std::vector<int> best_vertices = findBestVertices(N);
+		printf("Best Roots  :");
+		for (auto result : best_vertices)
+		{
+			printf(" %d", result);
+		}
+		printf("\nWorst Roots :");
+		for (auto result : worst_vertices)
+		{
+			printf(" %d", result);
+		}
+		printf("\n");
+	}
+}
