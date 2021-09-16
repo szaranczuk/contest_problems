@@ -1,0 +1,75 @@
+#include <iostream>
+#include <vector>
+
+const int INF = 1000000001;
+
+//This solution is based on following theorem:
+//In every graph there exists a point which maximum distance to any vertex is not greater than maximum distance to any vertex from any other point
+//This lowest maximum distance is half of diameter of minimum diameter spanning tree
+//This point can be either in a vertex, or in the middle of the edge
+//So I split every edge in a half
+//More precisely, MDSP problem is equivalent to absolute 1-center problem
+//You can read more about it here: http://www.math.tau.ac.il/~hassin/diameter_95.pdf
+//Or in problem C explaination here: https://web.archive.org/web/20160309101249/https://adn.botao.hu/adn-backup/blog/attachments/month_0705/32007531153238.pdf
+//Time complexity is O((n + m)^3) = O(n^3 + m^3)
+
+std::vector<std::vector<int>> distance;
+int main()
+{
+	int test_cases;
+	scanf("%d", &test_cases);
+	for (int i = 0; i < test_cases; i++)
+	{
+		int n, m;
+		scanf("%d %d", &n, &m);
+		distance.clear();
+		distance.resize(n + m);
+		for (int i = 0; i < n + m; i++)
+		{
+			distance[i].assign(n + m, INF);
+			distance[i][i] = 0;
+		}
+		for (int i = 0; i < m; i++)
+		{
+			int a, b;
+			scanf("%d %d", &a, &b);
+			distance[a][n + i] = 1;
+			distance[n + i][b] = 1;
+			distance[b][n + i] = 1;
+			distance[n + i][a] = 1;
+			distance[a][b] = 2;
+			distance[b][a] = 2;
+		}
+		for (int k = 0; k < n + m; k++)
+		{
+			for (int i = 0; i < n + m; i++)
+			{
+				for (int j = 0; j < n + m; j++)
+				{
+					distance[i][j] = std::min(distance[i][j], distance[i][k] + distance[k][j]);
+				}
+			}
+		}
+		int graph_center = 0;
+		int min_eccentricity = INF;
+		for (int i = 0; i < n + m; i++)
+		{
+			int local_eccentricity = 0;
+			for (int j = 0; j < n; j++)
+			{
+				local_eccentricity = std::max(local_eccentricity, distance[i][j]);
+				if (distance[i][j] == INF)
+				{
+					printf("%d %d\n", i, j);
+				}
+			}
+			if (local_eccentricity < min_eccentricity)
+			{
+				min_eccentricity = local_eccentricity;
+				graph_center = i;
+			}
+		}
+		int result = min_eccentricity;
+		printf("Case #%d:\n%d\n\n", i + 1, result);
+	}
+}
